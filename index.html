@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Servicios</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>* {
+            box-sizing: border-box;
+        }
+        :root {
+            --gris-tiempo: #9e9e9e;
+            --verde-moneda: #27C956;
+            --ambar-texto: #FFC107;
+            --gris-boton: #9e9e9e;
+            --gris-boton-activo: #5a5a5a;
+            --fondo-pagina: #000000;
+            --fondo-form: #2b2b2b;
+            --fondo-reporte: #eeeeee;
+            --texto-claro: #e0e0e0;
+            --borde: #ffffff;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: var(--fondo-pagina);
+            color: var(--texto-claro);
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+            margin: 0;
+        }
+
+        .container {
+            background: var(--fondo-form);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            max-width: 750px;
+            width: 100%;
+            border: 1px solid var(--borde);
+        }
+
+        h2 {
+            color: #ffffff;
+            text-align: center;
+            border-bottom: 2px solid #ffffff;
+            padding-bottom: 10px;
+        }
+
+        fieldset {
+            border: 1px solid var(--borde);
+            border-radius: 8px;
+            margin-bottom: 20px;
+            padding: 15px;
+        }
+
+        legend {
+            font-weight: bold;
+            color: #ffffff;
+            padding: 0 10px;
+        }
+
+        .grid-inputs {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 15px;
+            align-items: end;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        label { font-size: 0.9em; color: #ffffff; }
+
+        .checkbox-group {
+            background-color: #1e1e1e;
+            border: 1px solid var(--borde);
+            border-radius: 5px;
+            padding: 10px;
+            gap: 8px;
+        }
+
+        .checkbox-group label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--texto-claro);
+            font-weight: bold;
+            font-size: 0.95em;
+            cursor: pointer;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .checkbox-group input[type="text"] {
+            text-align: right;
+            color: #000;
+            background-color: var(--verde-moneda);
+            font-weight: bold;
+            border: 1px solid #fff;
+        }
+
+        .nota-ayuda {
+            color: #999;
+            font-size: 0.75em;
+            font-weight: normal;
+            line-height: 1.3;
+        }
+
+        .checkbox-group-descuento {
+            border-color: #4caf50;
+        }
+
+        .input-libre {
+            padding: 10px;
+            border-radius: 5px;
+            outline: none;
+            border: 2px solid #ffffff;
+        }
+
+        input {
+            padding: 10px;
+            border: 1px solid var(--borde);
+            border-radius: 5px;
+            background-color: #1e1e1e;
+            color: white;
+        }
+
+        input[readonly] {
+            background-color: #252525;
+            color: #e0e0e0;
+            font-weight: bold;
+            border: 1px solid var(--borde);
+        }
+
+        /* --- CAMPOS POR CATEGORÍA: TIEMPO / MONEDA / TEXTO --- */
+        .campo-tiempo {
+            background-color: var(--gris-tiempo) !important;
+            color: #000000 !important;
+            font-weight: bold !important;
+            border: 1px solid #ffffff !important;
+        }
+
+        .campo-moneda {
+            background-color: var(--verde-moneda) !important;
+            color: #000000 !important;
+            font-weight: bold !important;
+            border: 1px solid #ffffff !important;
+        }
+
+        .campo-texto {
+            background-color: var(--ambar-texto) !important;
+            color: #000000 !important;
+            font-weight: bold !important;
+            border: 1px solid #ffffff !important;
+        }
+
+        .campo-tiempo::placeholder,
+        .campo-moneda::placeholder,
+        .campo-texto::placeholder {
+            color: #000000 !important;
+            opacity: 0.65;
+        }
+
+        button {
+            background-color: var(--gris-boton);
+            color: #000000;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        button:hover { filter: brightness(1.15); }
+
+        button:active {
+            background-color: var(--gris-boton-activo) !important;
+            color: #ffffff !important;
+        }
+
+        .btn-ahora {
+            background-color: var(--gris-boton);
+            color: #000000;
+            margin-top: 5px;
+            font-size: 0.8em;
+        }
+
+        .btn-nuevo {
+            background-color: var(--gris-boton);
+            color: #000000;
+            width: 100%;
+            margin-top: 20px;
+            font-size: 1.1em;
+        }
+
+        .btn-whatsapp {
+            background-color: var(--gris-boton);
+            color: #000000;
+            width: 100%;
+            margin-top: 15px;
+            font-size: 1em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-guardar {
+            background-color: var(--gris-boton);
+            color: #000000;
+            width: 100%;
+            margin-top: 15px;
+            font-size: 1em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-guardar:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        /* --- ESTILOS EXCLUSIVOS DEL REPORTE --- */
+        #captura-recibo {
+            background-color: var(--fondo-reporte);
+            padding: 30px;
+            border-radius: 5px;
+            color: #000000;
+        }
+
+        #captura-recibo h3 {
+            margin: 0 0 20px 0;
+            text-align: center;
+            font-size: 1.4em;
+            text-transform: uppercase;
+            border-bottom: 2px solid #000;
+            padding-bottom: 5px;
+            color: #000;
+        }
+
+        .seccion-reporte {
+            margin-bottom: 15px;
+            border-bottom: 1px solid #999;
+            padding-bottom: 10px;
+        }
+
+        .linea-reporte {
+            display: flex; 
+            justify-content: space-between; 
+            margin-bottom: 10px;
+            align-items: center;
+            font-size: 1.1em;
+        }
+
+        .linea-reporte input {
+            border: none !important;
+            text-align: right;
+            background: transparent !important;
+            width: 210px;
+            color: #000 !important;
+            font-weight: 800 !important;
+            font-size: 1em !important;
+            padding: 0;
+        }
+
+        .total-reporte {
+            font-size: 1.5em !important;
+            margin-top: 15px;
+            background: #ddd;
+            padding: 10px 5px;
+        }
+
+        .nota-recibo {
+            font-size: 0.75em;
+            color: #555;
+            text-align: right;
+            margin-top: -8px;
+            margin-bottom: 10px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>Recorrido V 3.3</h2>
+    <form id="calcForm">
+        <fieldset>
+            <legend>Tiempo Viaje</legend>
+            <div class="grid-inputs">
+                <div class="input-group">
+                    <label>Hora Inicio</label>
+                    <input type="datetime-local" id="inputInicio" class="input-libre campo-tiempo" onchange="calcularTodo()">
+                    <button type="button" class="btn-ahora" onclick="capturarAhora('inputInicio')">Inicio</button>
+                </div>
+                <div class="input-group">
+                    <label>Hora Final</label>
+                    <input type="datetime-local" id="inputFinal" class="input-libre campo-tiempo" onchange="calcularTodo()">
+                    <button type="button" class="btn-ahora" onclick="capturarAhora('inputFinal')">Final</button>
+                </div>
+                <div class="input-group">
+                    <label>Total tiempo</label>
+                    <input type="text" id="resHoras" class="campo-tiempo" readonly value="0.00 h">
+                </div>
+            </div>
+        </fieldset>
+        <fieldset>
+            <legend>Distancia y Recargos</legend>
+            <div class="grid-inputs">
+                <div class="input-group">
+                    <label>Km Recorridos</label>
+                    <input type="number" id="kmRecorridos" step="0.1" class="input-libre campo-texto" placeholder="0.0" oninput="calcularTodo()">
+                </div>
+                <div class="input-group">
+                    <label>Recargos ($)</label>
+                    <input type="text" id="inputRecargos" class="input-libre campo-moneda" placeholder="$0" inputmode="numeric" oninput="formatearMoneda(this); calcularTodo()">
+                </div>
+                <div class="input-group">
+                    <label>Concepto</label>
+                    <input type="text" id="inputConcepto" class="input-libre campo-texto" placeholder="Motivo del recargo" oninput="calcularTodo()">
+                </div>
+                <div class="input-group">
+                    <label>Valores Base</label>
+                    <div style="font-size: 0.8em; color: #ffffff; font-weight: bold;">H: $10.000 | Km: $1.500 | Mínimo: $30.000</div>
+                </div>
+                <div class="input-group">
+                    <label>Ajuste Tarifa Mínima</label>
+                    <input type="text" id="valAjusteMinimo" class="campo-moneda" readonly value="$0">
+                </div>
+            </div>
+        </fieldset>
+        <fieldset>
+            <legend>Recargos Porcentuales</legend>
+            <div class="grid-inputs">
+                <div class="input-group checkbox-group">
+                    <label><input type="checkbox" id="chkNocturno" onchange="calcularTodo()"> <span id="lblNocturno">Recargo nocturno</span></label>
+                    <input type="text" id="valNocturno" readonly value="$0">
+                </div>
+                <div class="input-group checkbox-group">
+                    <label><input type="checkbox" id="chkFinSemana" onchange="calcularTodo()"> <span id="lblFinSemana">Domingo o Festivo</span></label>
+                    <input type="text" id="valFinSemana" readonly value="$0">
+                </div>
+                <div class="input-group checkbox-group">
+                    <label><input type="checkbox" id="chkForaneo" onchange="calcularTodo()"> <span id="lblForaneo">Foráneo</span></label>
+                    <input type="text" id="valForaneo" readonly value="$0">
+                    <small class="nota-ayuda">Fuera del perimetro urbano</small>
+                </div>
+                <div class="input-group checkbox-group">
+                    <label><input type="checkbox" id="chkForaneoExtendido" onchange="calcularTodo()"> <span id="lblForaneoExtendido">Foráneo extendido</span></label>
+                    <input type="text" id="valForaneoExtendido" readonly value="$0">
+                    <small class="nota-ayuda">Recorrido Mayor a 50 km</small>
+                </div>
+                <div class="input-group checkbox-group">
+                    <label><input type="checkbox" id="chkRetorno" onchange="calcularTodo()"> <span id="lblRetorno">Retorno</span></label>
+                    <input type="text" id="valRetorno" readonly value="$0">
+                </div>
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend>Descuentos</legend>
+            <div class="grid-inputs">
+                <div class="input-group">
+                    <label>Descuento ($)</label>
+                    <input type="text" id="inputDescuento" class="input-libre campo-moneda" placeholder="$0" inputmode="numeric" oninput="formatearMoneda(this); calcularTodo()">
+                </div>
+            </div>
+        </fieldset>
+
+        <div id="captura-recibo">
+            <h3>Recibo de Servicio</h3>
+            <div class="seccion-reporte">
+                <div class="linea-reporte">
+                    <span>Inicio:</span>
+                    <input type="text" id="dispInicio" readonly>
+                </div>
+                <div class="linea-reporte">
+                    <span>Final:</span>
+                    <input type="text" id="dispFinal" readonly>
+                </div>
+                <div class="linea-reporte">
+                    <span>Distancia:</span>
+                    <input type="text" id="dispKm" readonly>
+                </div>
+            </div>
+
+            <div class="linea-reporte">
+                <span>Cobro Tiempo:</span>
+                <input type="text" id="resCostoTiempo" readonly>
+            </div>
+            <div class="linea-reporte">
+                <span>Cobro Km:</span>
+                <input type="text" id="resCostoKm" readonly>
+            </div>
+            <div id="filaAjusteMinimo" style="display:none;">
+                <div class="linea-reporte">
+                    <span>Ajuste Tarifa Mínima:</span>
+                    <input type="text" id="resAjusteMinimo" readonly>
+                </div>
+                <div class="nota-recibo">Se aplica tarifa mínima de servicio ($30.000)</div>
+            </div>
+            <div class="linea-reporte">
+                <span>Recargos:</span>
+                <input type="text" id="resRecargos" readonly>
+            </div>
+            <div class="linea-reporte" id="filaConcepto" style="display:none;">
+                <span>Concepto:</span>
+                <input type="text" id="dispConcepto" readonly>
+            </div>
+            <div class="linea-reporte" id="filaNocturno" style="display:none;">
+                <span id="lblNocturnoRecibo">Recargo nocturno:</span>
+                <input type="text" id="resNocturno" readonly>
+            </div>
+            <div class="linea-reporte" id="filaFinSemana" style="display:none;">
+                <span id="lblFinSemanaRecibo">Domingo o Festivo</span>
+                <input type="text" id="resFinSemana" readonly>
+            </div>
+            <div id="filaForaneo" style="display:none;">
+                <div class="linea-reporte">
+                    <span id="lblForaneoRecibo">Foráneo:</span>
+                    <input type="text" id="resForaneo" readonly>
+                </div>
+                <div class="nota-recibo">Fuera del perimetro urbano</div>
+            </div>
+            <div id="filaForaneoExtendido" style="display:none;">
+                <div class="linea-reporte">
+                    <span id="lblForaneoExtendidoRecibo">Foráneo extendido:</span>
+                    <input type="text" id="resForaneoExtendido" readonly>
+                </div>
+                <div class="nota-recibo">Recorrido mayor a 50 km</div>
+            </div>
+            <div class="linea-reporte" id="filaRetorno" style="display:none;">
+                <span id="lblRetornoRecibo">Retorno:</span>
+                <input type="text" id="resRetorno" readonly>
+            </div>
+            <div class="linea-reporte" id="filaDescuento" style="display:none;">
+                <span>Descuento:</span>
+                <input type="text" id="resDescuento" readonly>
+            </div>
+
+            <div class="linea-reporte total-reporte">
+                <strong>TOTAL:</strong>
+                <input type="text" id="totalCobro" readonly>
+            </div>
+
+            <div class="linea-reporte">
+                <span>Recibido:</span>
+                <input type="text" id="dispRecibido" readonly>
+            </div>
+            <div class="linea-reporte" style="font-size: 1.2em; border-top: 1px solid #000; padding-top: 5px;">
+                <strong>Cambio:</strong>
+                <input type="text" id="resDiferencia" readonly>
+            </div>
+        </div>
+
+        <fieldset style="margin-top: 20px;">
+            <legend>Gestión de Pago</legend>
+            <div class="input-group">
+                <label>Monto Recibido ($):</label>
+                <input type="number" id="inputRecibido" class="input-libre campo-moneda" placeholder="0" oninput="calcularTodo()" style="width: 100%; text-align: right;">
+            </div>
+        </fieldset>
+
+        <button type="button" class="btn-whatsapp" onclick="descargarReporte()">
+            <span>📷</span>Imagen Para Compartir
+        </button>
+
+        <button type="button" class="btn-guardar" id="btnGuardarSheet" onclick="guardarEnGoogleSheets()">
+            <span>💾</span>Guardar en Hoja de Cálculo
+        </button>
+
+        <button type="button" class="btn-nuevo" onclick="nuevoServicio()">
+            NUEVO SERVICIO
+        </button>
+    </form>
+</div>
+
+<script>
+    // ==========================================================
+    // ZONA DE CONFIGURACIÓN — EDITAR AQUÍ LOS VALORES Y PORCENTAJES
+    // ==========================================================
+    const PRECIO_HORA = 10000;
+    const PRECIO_KILOMETRO = 1500;
+    const TARIFA_MINIMA = 30000;  // Cobro mínimo por servicio (sobre Tiempo + Km)
+
+    // Porcentajes de recargo (en formato decimal: 0.35 = 35%)
+    const PORCENTAJE_NOCTURNO   = 0.35;   // Recargo nocturno
+    const PORCENTAJE_FINDESEMANA = 0.50;  // Domingo o Festivo
+    const PORCENTAJE_FORANEO    = 0.25;   // Foráneo
+    const PORCENTAJE_FORANEO_EXTENDIDO = 0.50;  // Foráneo extendido
+    const PORCENTAJE_RETORNO    = 0.50;   // Retorno
+
+    // Pega aquí la URL que te da Google al publicar el Apps Script
+    // (debe terminar en /exec). Mientras no la cambies, el botón de
+    // guardado te avisará que falta configurarla.
+    const URL_GOOGLE_SHEETS = "https://script.google.com/macros/s/AKfycbyqvBwCY1n9qk58NyUzHGdP7Rh8VuUE-1tolkyVTKefH9WWvyiTtFGK7uqQdbjTlkg/exec";
+    // ==========================================================
+
+    const formateador = new Intl.NumberFormat('es-CO', {
+        style: 'currency', currency: 'COP', minimumFractionDigits: 0
+    });
+
+    // Guarda siempre los últimos valores calculados, listos para enviar a Google Sheets
+    let datosActuales = {};
+
+    function capturarAhora(id) {
+        const ahora = new Date();
+        const offset = ahora.getTimezoneOffset() * 60000;
+        const localISO = (new Date(ahora - offset)).toISOString().slice(0, 16);
+        document.getElementById(id).value = localISO;
+        calcularTodo(); // Forzamos el cálculo inmediatamente
+    }
+
+    // Formatea un campo de texto como moneda COP mientras se escribe
+    function formatearMoneda(el) {
+        const soloDigitos = el.value.replace(/[^\d]/g, '');
+        if (soloDigitos === '') {
+            el.value = '';
+            return;
+        }
+        el.value = formateador.format(parseInt(soloDigitos, 10));
+    }
+
+    // Convierte un valor numérico de $ formateado (o número) a entero
+    function limpiarMoneda(valor) {
+        const soloDigitos = String(valor).replace(/[^\d]/g, '');
+        return soloDigitos === '' ? 0 : parseInt(soloDigitos, 10);
+    }
+
+    // Convierte horas decimales a formato "Hh Mm"
+    function formatoHoraMin(horasDecimal) {
+        const totalMinutos = Math.round(horasDecimal * 60);
+        const h = Math.floor(totalMinutos / 60);
+        const m = totalMinutos % 60;
+        return h + "h " + m.toString().padStart(2, '0') + "m";
+    }
+
+    // Coloca el % configurado en las etiquetas de las casillas y del recibo
+    function inicializarEtiquetas() {
+        document.getElementById('lblNocturno').textContent =
+            "Recargo nocturno (" + (PORCENTAJE_NOCTURNO * 100) + "%)";
+        document.getElementById('lblFinSemana').textContent =
+            "Domingo o Festivo (" + (PORCENTAJE_FINDESEMANA * 100) + "%)";
+        document.getElementById('lblForaneo').textContent =
+            "Foráneo (" + (PORCENTAJE_FORANEO * 100) + "%)";
+        document.getElementById('lblForaneoExtendido').textContent =
+            "Foráneo extendido (" + (PORCENTAJE_FORANEO_EXTENDIDO * 100) + "%)";
+        document.getElementById('lblRetorno').textContent =
+            "Retorno (" + (PORCENTAJE_RETORNO * 100) + "%)";
+
+        document.getElementById('lblNocturnoRecibo').textContent =
+            "Recargo nocturno (" + (PORCENTAJE_NOCTURNO * 100) + "%):";
+        document.getElementById('lblFinSemanaRecibo').textContent =
+            "Domingo o Festivo (" + (PORCENTAJE_FINDESEMANA * 100) + "%):";
+        document.getElementById('lblForaneoRecibo').textContent =
+            "Foráneo (" + (PORCENTAJE_FORANEO * 100) + "%):";
+        document.getElementById('lblForaneoExtendidoRecibo').textContent =
+            "Foráneo extendido (" + (PORCENTAJE_FORANEO_EXTENDIDO * 100) + "%):";
+        document.getElementById('lblRetornoRecibo').textContent =
+            "Retorno (" + (PORCENTAJE_RETORNO * 100) + "%):";
+    }
+
+    function calcularTodo() {
+        const valIni = document.getElementById('inputInicio').value;
+        const valFin = document.getElementById('inputFinal').value;
+        
+        const ini = new Date(valIni);
+        const fin = new Date(valFin);
+        
+        let horas = 0;
+        if (!isNaN(ini) && !isNaN(fin) && fin > ini) {
+            horas = (fin - ini) / (1000 * 60 * 60);
+        }
+        
+        document.getElementById('resHoras').value = formatoHoraMin(horas);
+
+        const subTiempo = horas * PRECIO_HORA;
+        const kms = parseFloat(document.getElementById('kmRecorridos').value) || 0;
+        const subKm = kms * PRECIO_KILOMETRO;
+        const subtotalReal = subTiempo + subKm;
+
+        // Si el cálculo real de Tiempo+Km no alcanza la tarifa mínima,
+        // se cobra la tarifa mínima; en cuanto la supere, se cobra el valor real.
+        const ajusteMinimo = subtotalReal < TARIFA_MINIMA ? (TARIFA_MINIMA - subtotalReal) : 0;
+        const subtotalBase = subtotalReal + ajusteMinimo;
+
+        document.getElementById('valAjusteMinimo').value = formateador.format(ajusteMinimo);
+
+        const recargos = limpiarMoneda(document.getElementById('inputRecargos').value);
+        const concepto = document.getElementById('inputConcepto').value.trim();
+
+        // Recargos porcentuales
+        const chkNocturno = document.getElementById('chkNocturno').checked;
+        const chkFinSemana = document.getElementById('chkFinSemana').checked;
+        const chkForaneo = document.getElementById('chkForaneo').checked;
+        const chkForaneoExtendido = document.getElementById('chkForaneoExtendido').checked;
+        const chkRetorno = document.getElementById('chkRetorno').checked;
+        const montoDescuento = limpiarMoneda(document.getElementById('inputDescuento').value);
+
+        const montoNocturno = chkNocturno ? subtotalBase * PORCENTAJE_NOCTURNO : 0;
+        const montoFinSemana = chkFinSemana ? subtotalBase * PORCENTAJE_FINDESEMANA : 0;
+        const montoForaneo = chkForaneo ? subtotalBase * PORCENTAJE_FORANEO : 0;
+        const montoForaneoExtendido = chkForaneoExtendido ? subtotalBase * PORCENTAJE_FORANEO_EXTENDIDO : 0;
+        const montoRetorno = chkRetorno ? subtotalBase * PORCENTAJE_RETORNO : 0;
+
+        document.getElementById('valNocturno').value = formateador.format(montoNocturno);
+        document.getElementById('valFinSemana').value = formateador.format(montoFinSemana);
+        document.getElementById('valForaneo').value = formateador.format(montoForaneo);
+        document.getElementById('valForaneoExtendido').value = formateador.format(montoForaneoExtendido);
+        document.getElementById('valRetorno').value = formateador.format(montoRetorno);
+
+        const totalCobro = subtotalBase + recargos + montoNocturno + montoFinSemana + montoForaneo + montoForaneoExtendido + montoRetorno - montoDescuento;
+        const recibido = parseFloat(document.getElementById('inputRecibido').value) || 0;
+
+        // Actualizar UI
+        document.getElementById('resCostoTiempo').value = formateador.format(subTiempo);
+        document.getElementById('resCostoKm').value = formateador.format(subKm);
+        document.getElementById('resRecargos').value = formateador.format(recargos);
+        document.getElementById('totalCobro').value = formateador.format(totalCobro);
+        document.getElementById('resDiferencia').value = formateador.format(recibido - totalCobro);
+        document.getElementById('dispRecibido').value = formateador.format(recibido);
+
+        // Ajuste de tarifa mínima (solo visible en el recibo si se aplicó)
+        document.getElementById('resAjusteMinimo').value = formateador.format(ajusteMinimo);
+        document.getElementById('filaAjusteMinimo').style.display = ajusteMinimo > 0 ? 'block' : 'none';
+
+        // Concepto (solo visible en el recibo si hay texto)
+        document.getElementById('dispConcepto').value = concepto;
+        document.getElementById('filaConcepto').style.display = concepto ? 'flex' : 'none';
+
+        // Filas de recargos porcentuales en el recibo (solo si están marcados)
+        document.getElementById('resNocturno').value = formateador.format(montoNocturno);
+        document.getElementById('filaNocturno').style.display = chkNocturno ? 'flex' : 'none';
+
+        document.getElementById('resFinSemana').value = formateador.format(montoFinSemana);
+        document.getElementById('filaFinSemana').style.display = chkFinSemana ? 'flex' : 'none';
+
+        document.getElementById('resForaneo').value = formateador.format(montoForaneo);
+        document.getElementById('filaForaneo').style.display = chkForaneo ? 'block' : 'none';
+
+        document.getElementById('resForaneoExtendido').value = formateador.format(montoForaneoExtendido);
+        document.getElementById('filaForaneoExtendido').style.display = chkForaneoExtendido ? 'block' : 'none';
+
+        document.getElementById('resRetorno').value = formateador.format(montoRetorno);
+        document.getElementById('filaRetorno').style.display = chkRetorno ? 'flex' : 'none';
+
+        document.getElementById('resDescuento').value = "-" + formateador.format(montoDescuento);
+        document.getElementById('filaDescuento').style.display = montoDescuento > 0 ? 'flex' : 'none';
+
+        // Reporte (Evita que el reporte falle si no hay fechas)
+        document.getElementById('dispInicio').value = valIni ? valIni.replace('T', ' ') : '---';
+        document.getElementById('dispFinal').value = valFin ? valFin.replace('T', ' ') : '---';
+        document.getElementById('dispKm').value = kms.toFixed(1) + " Km";
+
+        // Guardamos los valores actuales (números "en bruto", sin formato $)
+        // listos para enviarse a Google Sheets si el usuario hace clic en Guardar.
+        datosActuales = {
+            inicio: valIni ? valIni.replace('T', ' ') : '',
+            final: valFin ? valFin.replace('T', ' ') : '',
+            horas: horas.toFixed(2),
+            km: kms,
+            costoTiempo: Math.round(subTiempo),
+            costoKm: Math.round(subKm),
+            recargosManual: recargos,
+            concepto: concepto,
+            nocturno: Math.round(montoNocturno),
+            finSemana: Math.round(montoFinSemana),
+            foraneo: Math.round(montoForaneo),
+            foraneoExtendido: Math.round(montoForaneoExtendido),
+            retorno: Math.round(montoRetorno),
+            descuento: Math.round(montoDescuento),
+            total: Math.round(totalCobro),
+            recibido: recibido,
+            cambio: Math.round(recibido - totalCobro),
+            ajusteMinimo: Math.round(ajusteMinimo)
+        };
+    }
+
+    function descargarReporte() {
+        const area = document.getElementById('captura-recibo');
+        html2canvas(area, { backgroundColor: '#eeeeee', scale: 3 }).then(canvas => {
+            const link = document.createElement('a');
+            link.download = 'Recibo.png';
+            link.href = canvas.toDataURL("image/png");
+            link.click();
+        });
+    }
+
+    function guardarEnGoogleSheets() {
+        const boton = document.getElementById('btnGuardarSheet');
+        const contenidoOriginal = boton.innerHTML;
+
+        if (!URL_GOOGLE_SHEETS || URL_GOOGLE_SHEETS.includes('PEGA_AQUI')) {
+            alert('Falta configurar la URL de Google Sheets.\n\nBusca "URL_GOOGLE_SHEETS" en el código y pega ahí la URL que te dio Google al publicar el Apps Script.');
+            return;
+        }
+
+        const datosForm = new FormData();
+        Object.keys(datosActuales).forEach(clave => {
+            datosForm.append(clave, datosActuales[clave]);
+        });
+
+        boton.disabled = true;
+        boton.innerHTML = '<span>⏳</span>Guardando...';
+
+        fetch(URL_GOOGLE_SHEETS, {
+            method: 'POST',
+            mode: 'no-cors', // Necesario para que Google acepte la petición desde el navegador
+            body: datosForm
+        }).then(() => {
+            // Con "no-cors" no podemos leer la respuesta real de Google,
+            // así que asumimos éxito si la petición no fue bloqueada por la red.
+            boton.innerHTML = '<span>✅</span>Guardado';
+        }).catch(() => {
+            boton.innerHTML = '<span>❌</span>Error de conexión';
+        }).finally(() => {
+            setTimeout(() => {
+                boton.innerHTML = contenidoOriginal;
+                boton.disabled = false;
+            }, 2000);
+        });
+    }
+
+    function nuevoServicio() {
+        if(confirm("¿Limpiar todo?")) {
+            document.getElementById("calcForm").reset();
+            calcularTodo();
+        }
+    }
+
+    window.onload = function() {
+        inicializarEtiquetas();
+        calcularTodo();
+    };
+</script>
+</body>
+</html>
