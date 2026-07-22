@@ -262,13 +262,20 @@
             margin-bottom: 10px;
             align-items: center;
             font-size: 1.1em;
+            gap: 10px;
+        }
+
+        .linea-reporte span {
+            flex-shrink: 0;
         }
 
         .linea-reporte input {
             border: none !important;
             text-align: right;
             background: transparent !important;
-            width: 210px;
+            flex: 1 1 auto;
+            min-width: 0;
+            max-width: 100%;
             color: #000 !important;
             font-weight: 800 !important;
             font-size: 1em !important;
@@ -294,8 +301,25 @@
 </head>
 <body>
 <div class="container">
-    <h2>Recorrido V 3.3</h2>
+    <h2>Recorrido V 3.4</h2>
     <form id="calcForm">
+        <fieldset>
+            <legend>Tipo de Servicio</legend>
+            <div class="grid-inputs">
+                <div class="input-group checkbox-group">
+                    <label><input type="checkbox" id="chkMotogrua" onchange="calcularTodo()"> Motogrúa</label>
+                </div>
+                <div class="input-group checkbox-group">
+                    <label><input type="checkbox" id="chkJumpStarter" onchange="calcularTodo()"> Jump Starter</label>
+                </div>
+                <div class="input-group checkbox-group">
+                    <label><input type="checkbox" id="chkCargaLigera" onchange="calcularTodo()"> Carga Ligera</label>
+                </div>
+                <div class="input-group checkbox-group">
+                    <label><input type="checkbox" id="chkMascotas" onchange="calcularTodo()"> Transporte de Mascotas</label>
+                </div>
+            </div>
+        </fieldset>
         <fieldset>
             <legend>Tiempo Viaje</legend>
             <div class="grid-inputs">
@@ -357,7 +381,7 @@
                     <small class="nota-ayuda">Fuera del perimetro urbano</small>
                 </div>
                 <div class="input-group checkbox-group">
-                    <label><input type="checkbox" id="chkForaneoExtendido" onchange="calcularTodo()"> <span id="lblForaneoExtendido">Foráneo extendido</span></label>
+                    <label><input type="checkbox" id="chkForaneoExtendido" onchange="calcularTodo()"> <span id="lblForaneoExtendido">Recorrido extendido</span></label>
                     <input type="text" id="valForaneoExtendido" readonly value="$0">
                     <small class="nota-ayuda">Recorrido Mayor a 50 km</small>
                 </div>
@@ -379,7 +403,10 @@
         </fieldset>
 
         <div id="captura-recibo">
-            <h3>Recibo de Servicio</h3>
+            <h3>Servicio de Motocarguero</h3>
+            <div id="filaTipoServicio" style="text-align:center; font-weight:bold; font-size:1.05em; margin-bottom:15px; color:#000;">
+                <span id="dispTipoServicio">---</span>
+            </div>
             <div class="seccion-reporte">
                 <div class="linea-reporte">
                     <span>Inicio:</span>
@@ -435,7 +462,7 @@
             </div>
             <div id="filaForaneoExtendido" style="display:none;">
                 <div class="linea-reporte">
-                    <span id="lblForaneoExtendidoRecibo">Foráneo extendido:</span>
+                    <span id="lblForaneoExtendidoRecibo">Recorrido extendido:</span>
                     <input type="text" id="resForaneoExtendido" readonly>
                 </div>
                 <div class="nota-recibo">Recorrido mayor a 50 km</div>
@@ -466,9 +493,27 @@
 
         <fieldset style="margin-top: 20px;">
             <legend>Gestión de Pago</legend>
-            <div class="input-group">
-                <label>Monto Recibido ($):</label>
-                <input type="number" id="inputRecibido" class="input-libre campo-moneda" placeholder="0" oninput="calcularTodo()" style="width: 100%; text-align: right;">
+            <div class="grid-inputs">
+                <div class="input-group">
+                    <label>Nequi ($)</label>
+                    <input type="text" id="inputNequi" class="input-libre campo-moneda" placeholder="$0" inputmode="numeric" oninput="formatearMoneda(this); calcularTodo()">
+                </div>
+                <div class="input-group">
+                    <label>Daviplata ($)</label>
+                    <input type="text" id="inputDaviplata" class="input-libre campo-moneda" placeholder="$0" inputmode="numeric" oninput="formatearMoneda(this); calcularTodo()">
+                </div>
+                <div class="input-group">
+                    <label>Bre-B ($)</label>
+                    <input type="text" id="inputBreB" class="input-libre campo-moneda" placeholder="$0" inputmode="numeric" oninput="formatearMoneda(this); calcularTodo()">
+                </div>
+                <div class="input-group">
+                    <label>Efectivo ($)</label>
+                    <input type="text" id="inputEfectivo" class="input-libre campo-moneda" placeholder="$0" inputmode="numeric" oninput="formatearMoneda(this); calcularTodo()">
+                </div>
+            </div>
+            <div class="input-group" style="margin-top: 15px;">
+                <label>Monto Recibido ($) — Total</label>
+                <input type="text" id="inputRecibido" class="campo-moneda" readonly value="$0" style="width: 100%; text-align: right;">
             </div>
         </fieldset>
 
@@ -555,7 +600,7 @@
         document.getElementById('lblForaneo').textContent =
             "Foráneo (" + (PORCENTAJE_FORANEO * 100) + "%)";
         document.getElementById('lblForaneoExtendido').textContent =
-            "Foráneo extendido (" + (PORCENTAJE_FORANEO_EXTENDIDO * 100) + "%)";
+            "Recorrido extendido (" + (PORCENTAJE_FORANEO_EXTENDIDO * 100) + "%)";
         document.getElementById('lblRetorno').textContent =
             "Retorno (" + (PORCENTAJE_RETORNO * 100) + "%)";
 
@@ -566,7 +611,7 @@
         document.getElementById('lblForaneoRecibo').textContent =
             "Foráneo (" + (PORCENTAJE_FORANEO * 100) + "%):";
         document.getElementById('lblForaneoExtendidoRecibo').textContent =
-            "Foráneo extendido (" + (PORCENTAJE_FORANEO_EXTENDIDO * 100) + "%):";
+            "Recorrido extendido (" + (PORCENTAJE_FORANEO_EXTENDIDO * 100) + "%):";
         document.getElementById('lblRetornoRecibo').textContent =
             "Retorno (" + (PORCENTAJE_RETORNO * 100) + "%):";
     }
@@ -574,7 +619,16 @@
     function calcularTodo() {
         const valIni = document.getElementById('inputInicio').value;
         const valFin = document.getElementById('inputFinal').value;
-        
+
+        // Tipos de servicio marcados (pueden ser uno, varios, o todos a la vez)
+        const serviciosMarcados = [];
+        if (document.getElementById('chkMotogrua').checked) serviciosMarcados.push('Motogrúa');
+        if (document.getElementById('chkJumpStarter').checked) serviciosMarcados.push('Jump Starter');
+        if (document.getElementById('chkCargaLigera').checked) serviciosMarcados.push('Carga Ligera');
+        if (document.getElementById('chkMascotas').checked) serviciosMarcados.push('Transporte de Mascotas');
+        const textoServicios = serviciosMarcados.length ? serviciosMarcados.join(' + ') : '---';
+        document.getElementById('dispTipoServicio').textContent = textoServicios;
+
         const ini = new Date(valIni);
         const fin = new Date(valFin);
         
@@ -621,7 +675,12 @@
         document.getElementById('valRetorno').value = formateador.format(montoRetorno);
 
         const totalCobro = subtotalBase + recargos + montoNocturno + montoFinSemana + montoForaneo + montoForaneoExtendido + montoRetorno - montoDescuento;
-        const recibido = parseFloat(document.getElementById('inputRecibido').value) || 0;
+        const montoNequi = limpiarMoneda(document.getElementById('inputNequi').value);
+        const montoDaviplata = limpiarMoneda(document.getElementById('inputDaviplata').value);
+        const montoBreB = limpiarMoneda(document.getElementById('inputBreB').value);
+        const montoEfectivo = limpiarMoneda(document.getElementById('inputEfectivo').value);
+        const recibido = montoNequi + montoDaviplata + montoBreB + montoEfectivo;
+        document.getElementById('inputRecibido').value = formateador.format(recibido);
 
         // Actualizar UI
         document.getElementById('resCostoTiempo').value = formateador.format(subTiempo);
@@ -683,16 +742,32 @@
             total: Math.round(totalCobro),
             recibido: recibido,
             cambio: Math.round(recibido - totalCobro),
-            ajusteMinimo: Math.round(ajusteMinimo)
+            ajusteMinimo: Math.round(ajusteMinimo),
+            tiposServicio: textoServicios,
+            nequi: montoNequi,
+            daviplata: montoDaviplata,
+            breB: montoBreB,
+            efectivo: montoEfectivo
         };
     }
 
     function descargarReporte() {
         const area = document.getElementById('captura-recibo');
-        html2canvas(area, { backgroundColor: '#eeeeee', scale: 3 }).then(canvas => {
+
+        // Ancho fijo de captura: así la imagen sale igual de bien
+        // sin importar qué tan angosta sea la pantalla del celular.
+        // (Esto es lo que evita que el recibo salga cortado.)
+        const ANCHO_CAPTURA = 720;
+
+        html2canvas(area, {
+            backgroundColor: '#eeeeee',
+            scale: 2,
+            windowWidth: ANCHO_CAPTURA,
+            width: ANCHO_CAPTURA
+        }).then(canvasRecibo => {
             const link = document.createElement('a');
             link.download = 'Recibo.png';
-            link.href = canvas.toDataURL("image/png");
+            link.href = canvasRecibo.toDataURL("image/png");
             link.click();
         });
     }
