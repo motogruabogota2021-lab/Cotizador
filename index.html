@@ -115,10 +115,6 @@
             line-height: 1.3;
         }
 
-        .checkbox-group-descuento {
-            border-color: #4caf50;
-        }
-
         .input-libre {
             padding: 10px;
             border-radius: 5px;
@@ -313,10 +309,25 @@
                     <label><input type="checkbox" id="chkJumpStarter" onchange="calcularTodo()"> Jump Starter</label>
                 </div>
                 <div class="input-group checkbox-group">
-                    <label><input type="checkbox" id="chkCargaLigera" onchange="calcularTodo()"> Carga Ligera</label>
+                    <label><input type="checkbox" id="chkCargaLigera" onchange="calcularTodo()"> Courrier</label>
                 </div>
                 <div class="input-group checkbox-group">
                     <label><input type="checkbox" id="chkMascotas" onchange="calcularTodo()"> Transporte de Mascotas</label>
+                </div>
+            </div>
+        </fieldset>
+        <fieldset>
+            <legend>Cliente</legend>
+            <div class="grid-inputs">
+                <div class="input-group">
+                    <label>Cliente</label>
+                    <select id="selectCliente" class="input-libre campo-texto" onchange="manejarSelectCliente()">
+                        <option value="">-- Selecciona --</option>
+                    </select>
+                </div>
+                <div class="input-group" id="grupoClienteOtro" style="display:none;">
+                    <label>Nombre del Cliente</label>
+                    <input type="text" id="inputClienteOtro" class="input-libre campo-texto" placeholder="Escribe el nombre" oninput="calcularTodo()">
                 </div>
             </div>
         </fieldset>
@@ -406,6 +417,10 @@
             <h3>Servicio de Motocarguero</h3>
             <div id="filaTipoServicio" style="text-align:center; font-weight:bold; font-size:1.05em; margin-bottom:15px; color:#000;">
                 <span id="dispTipoServicio">---</span>
+            </div>
+            <div class="linea-reporte" id="filaCliente" style="display:none;">
+                <span>Cliente:</span>
+                <input type="text" id="dispCliente" readonly>
             </div>
             <div class="seccion-reporte">
                 <div class="linea-reporte">
@@ -546,6 +561,16 @@
     const PORCENTAJE_FORANEO_EXTENDIDO = 0.50;  // Foráneo extendido
     const PORCENTAJE_RETORNO    = 0.50;   // Retorno
 
+    // Lista de clientes que aparece en el desplegable. Agrega, quita o
+    // reordena nombres aquí (uno por línea, entre comillas, separados por coma).
+    const LISTA_CLIENTES = [
+        "Powerbike Scooter",
+        "Didi Cargo",
+        "Lubricentro Hamilton",
+		"Metalicas Galvis",
+		"Clinica Veterinaria Mr Bigotes"
+    ];
+
     // Pega aquí la URL que te da Google al publicar el Apps Script
     // (debe terminar en /exec). Mientras no la cambies, el botón de
     // guardado te avisará que falta configurarla.
@@ -592,6 +617,32 @@
     }
 
     // Coloca el % configurado en las etiquetas de las casillas y del recibo
+    // Llena el desplegable de Cliente con la lista configurada arriba,
+    // agregando siempre al final la opción "Otro (escribir)".
+    function poblarListaClientes() {
+        const select = document.getElementById('selectCliente');
+        LISTA_CLIENTES.forEach(nombre => {
+            const opcion = document.createElement('option');
+            opcion.value = nombre;
+            opcion.textContent = nombre;
+            select.appendChild(opcion);
+        });
+        const opcionOtro = document.createElement('option');
+        opcionOtro.value = '__otro__';
+        opcionOtro.textContent = 'Otro (escribir)';
+        select.appendChild(opcionOtro);
+    }
+
+    // Muestra u oculta el campo de texto libre según lo que se elija en el desplegable
+    function manejarSelectCliente() {
+        const esOtro = document.getElementById('selectCliente').value === '__otro__';
+        document.getElementById('grupoClienteOtro').style.display = esOtro ? 'flex' : 'none';
+        if (!esOtro) {
+            document.getElementById('inputClienteOtro').value = '';
+        }
+        calcularTodo();
+    }
+
     function inicializarEtiquetas() {
         document.getElementById('lblNocturno').textContent =
             "Recargo nocturno (" + (PORCENTAJE_NOCTURNO * 100) + "%)";
@@ -624,10 +675,16 @@
         const serviciosMarcados = [];
         if (document.getElementById('chkMotogrua').checked) serviciosMarcados.push('Motogrúa');
         if (document.getElementById('chkJumpStarter').checked) serviciosMarcados.push('Jump Starter');
-        if (document.getElementById('chkCargaLigera').checked) serviciosMarcados.push('Carga Ligera');
+        if (document.getElementById('chkCargaLigera').checked) serviciosMarcados.push('Courrier');
         if (document.getElementById('chkMascotas').checked) serviciosMarcados.push('Transporte de Mascotas');
         const textoServicios = serviciosMarcados.length ? serviciosMarcados.join(' + ') : '---';
         document.getElementById('dispTipoServicio').textContent = textoServicios;
+
+        // Cliente: viene de la lista, o del campo libre si se eligió "Otro"
+        const selectCliente = document.getElementById('selectCliente').value;
+        const clienteFinal = selectCliente === '__otro__'
+            ? document.getElementById('inputClienteOtro').value.trim()
+            : selectCliente;
 
         const ini = new Date(valIni);
         const fin = new Date(valFin);
@@ -694,6 +751,10 @@
         document.getElementById('resAjusteMinimo').value = formateador.format(ajusteMinimo);
         document.getElementById('filaAjusteMinimo').style.display = ajusteMinimo > 0 ? 'block' : 'none';
 
+        // Cliente (solo visible en el recibo si hay uno seleccionado o escrito)
+        document.getElementById('dispCliente').value = clienteFinal;
+        document.getElementById('filaCliente').style.display = clienteFinal ? 'flex' : 'none';
+
         // Concepto (solo visible en el recibo si hay texto)
         document.getElementById('dispConcepto').value = concepto;
         document.getElementById('filaConcepto').style.display = concepto ? 'flex' : 'none';
@@ -747,7 +808,8 @@
             nequi: montoNequi,
             daviplata: montoDaviplata,
             breB: montoBreB,
-            efectivo: montoEfectivo
+            efectivo: montoEfectivo,
+            cliente: clienteFinal
         };
     }
 
@@ -810,11 +872,13 @@
     function nuevoServicio() {
         if(confirm("¿Limpiar todo?")) {
             document.getElementById("calcForm").reset();
+            document.getElementById('grupoClienteOtro').style.display = 'none';
             calcularTodo();
         }
     }
 
     window.onload = function() {
+        poblarListaClientes();
         inicializarEtiquetas();
         calcularTodo();
     };
